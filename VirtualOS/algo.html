@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="styles/new_fifo.css">
+</head>
+<body>
+    <div id="algorithm" class="content-section">
+        <h2>ALGORITHM</h2>
+        <ol>
+            <li><strong>Input:</strong> Get a list of pages and the number of available frames (memory slots).</li>
+            <li><strong>Initialization:</strong> Use a queue to manage the pages in memory (FIFO order). Initialize a page fault counter.</li>
+            <li><strong>Page Processing:</strong>
+                <ul>
+                    <li>If the page is in memory, do nothing.</li>
+                    <li>If the page is not in memory (page fault) :
+                        <ul>
+                            <li>If space is available, add the page to memory.</li>
+                            <li>If memory is full, remove the oldest page (from the front of the queue) and load the new page.</li>
+                        </ul>
+                    </li>
+                    <li>Increase the page fault count for every new page loaded.</li>
+                </ul>
+            </li>
+            <li><strong>Output:</strong> After processing all pages, return the total number of page faults.</li>
+        </ol>
+    </div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="styles/new_fifo.css">
+</head>
+<body>
+
+    <div id="introduction"class="content-section">
+        
+        <h2>Page Replacement</h2>
+        <p>
+            <strong>Page Replacement</strong> is the technique of swapping out pages from physical memory when no more free frames are available, in order to make room for other pages that need to be loaded into memory.
+        </p>
+        <ul style="list-style-type: disc">
+            <li>If a process tries to access a page not present in physical memory, it causes a page fault, which triggers the need to load that page into memory.</li>
+            <li>If no free frames are available:
+                <ul style="list-style-type: circle">
+                    <li>We find an occupied frame that is not currently in use.</li>
+                    <li>The contents of the frame are written to swap space.</li>
+                    <li>Page tables and other records are updated to indicate the page is no longer in memory.</li>
+                    <li>The page causing the fault is loaded into the freed frame.</li>
+                </ul>
+            </li>
+        </ul>
+    
+        <h2>FIFO Page Replacement</h2>
+        <p>
+            The <strong>First-In, First-Out (FIFO)</strong> page replacement algorithm is the simplest of its kind. When a page replacement needs to happen, the oldest page in memory is chosen to be replaced.
+        </p>
+        <ul style="list-style-type: disc">
+            <li>We track the order in which pages enter memory using a FIFO queue.</li>
+            <li>When replacement occurs, the page at the head of the queue is swapped out.</li>
+            <li>A new page is added at the tail of the queue when loaded into memory.</li>
+        </ul>
+    </div>
+</body>
+</html>

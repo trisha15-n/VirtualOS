@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FIFO Page Replacement Debugger</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 20px auto;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      background: #fff;
+    }
+    .code-section, .debug-section {
+      flex: 1;
+      padding: 20px;
+      border: 1px solid #ddd;
+      overflow: auto;
+      position: relative;
+    }
+    .code-section {
+      background: #f0f0f0;
+      max-height: 600px;
+    }
+    .debug-section {
+      background: #fff;
+      max-height: 600px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px 0;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .output {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      white-space: pre-wrap;
+      font-family: monospace;
+      max-height: 400px;
+      overflow-y: auto; /* Enable vertical scrolling */
+    }
+    .frame {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 10px 0;
+    }
+    .frame div {
+      width: 50px;
+      height: 50px;
+      margin: 0 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 2px solid #007bff;
+      background: #e0f7ff;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .highlight {
+      background: #ffd1d1;
+      border-color: red;
+    }
+    .line-highlight {
+      background: rgba(255, 42, 191, 0.8);
+      padding: 5px;
+      border-radius: 3px;
+    }
+    .variable-highlight {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Code Section -->
+    <div class="code-section" id="codeSection">
+      <h3>FIFO Algorithm Code (C)</h3>
+      <pre id="code" class="code">
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+#define MAX_FRAMES 3
+
+void fifo(int pages[], int n) {
+    int frames[MAX_FRAMES];
+    for (int i = 0; i &lt; MAX_FRAMES; i++) {
+        frames[i] = -1; // Initialize all frames to -1 (empty)
+    }
+
+    int pageFaults = 0;
+    int index = 0;
+    printf(&quot;FIFO Page Replacement Simulation\n&quot;);
+
+    for (int i = 0; i &lt; n; i++) {
+        int page = pages[i];
+        int found = 0;
+
+        // Check if the page is already in one of the frames
+        for (int j = 0; j &lt; MAX_FRAMES; j++) {
+            if (frames[j] == page) {
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            // Page fault, replace the page in the frame
+            pageFaults++;
+            printf(&quot;Page %d caused a page fault. Replacing frame %d.\n&quot;, page, index + 1);
+            frames[index] = page;
+            index = (index + 1) % MAX_FRAMES;
+        } else {
+            printf(&quot;Page %d found in frame. No page fault.\n&quot;, page);
+        }
+
+        // Print current frame state
+        printf(&quot;Frames: &quot;);
+        for (int j = 0; j &lt; MAX_FRAMES; j++) {
+            if (frames[j] != -1) {
+                printf(&quot;%d &quot;, frames[j]);
+            } else {
+                printf(&quot;- &quot;);
+            }
+        }
+        printf(&quot;\n&quot;);
+    }
+
+    printf(&quot;Total page faults: %d\n&quot;, pageFaults);
+}
+
+int main() {
+    int pages[] = {7, 0, 1, 2, 0, 3, 0, 4, 2};
+    int n = sizeof(pages) / sizeof(pages[0]);
+
+    fifo(pages, n);
+    return 0;
+}
+      </pre>
+    </div>
+
+    <!-- Debugging Section -->
+    <div class="debug-section" id="debugSection">
+      <h3>FIFO Page Replacement Debugger</h3>
+      <button id="startBtn">Start Debugging</button>
+      <button id="nextStep" disabled>Next Step</button>
+      <button onclick="showAllSteps()">View Full Output</button>
+      <div id="output" class="output"></div>
+      <div id="frames" class="frame"></div>
+    </div>
+  </div>
+
+  <script>
+    const pages = [7, 0, 1, 2, 0, 3, 0, 4, 2];
+    const MAX_FRAMES = 3;
+    let frames = Array(MAX_FRAMES).fill(-1);
+    let pageFaults = 0;
+    let index = 0;
+    let steps = [];
+    let currentStep = 0;
+
+    const codeLines = [
+      { line: 12, message: 'Initializing frames' },
+      { line: 15, message: 'Starting page replacement loop' },
+      { line: 18, message: 'Checking page presence in frames' },
+      { line: 26, message: 'Page fault, replacing in frame' },
+      { line: 31, message: 'Frames state printed' },
+      { line: 33, message: 'End of loop iteration' },
+    ];
+
+    function fifo() {
+      steps = [];
+      pageFaults = 0;
+      index = 0;
+
+      steps.push({
+        message: `Starting FIFO Page Replacement for pages: ${pages.join(', ')}`,
+        frames: [...frames],
+        highlightLine: -1,
+      });
+
+      for (let i = 0; i < pages.length; i++) {
+        let page = pages[i];
+        let found = false;
+
+        steps.push({
+          message: `Step: Checking page ${page} (i=${i}, index=${index})`,
+          frames: [...frames],
+          highlightLine: 15,
+        });
+
+        for (let j = 0; j < MAX_FRAMES; j++) {
+          steps.push({
+            message: `Inner loop: Checking if page ${page} matches frame ${j} (j=${j})`,
+            frames: [...frames],
+            highlightLine: 18,
+          });
+          if (frames[j] === page) {
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          pageFaults++;
+          steps.push({
+            message: `Page ${page} caused a page fault. Replacing frame ${index + 1}.`,
+            frames: [...frames],
+            highlightLine: 26,
+          });
+          frames[index] = page;
+          index = (index + 1) % MAX_FRAMES;
+        } else {
+          steps.push({
+            message: `Page ${page} found in frame. No page fault.`,
+            frames: [...frames],
+            highlightLine: 18,
+          });
+        }
+
+        steps.push({
+          message: `Frames: ${frames.join(', ')}`,
+          frames: [...frames],
+          highlightLine: 31,
+        });
+      }
+
+      steps.push({
+        message: `Total page faults: ${pageFaults}`,
+        frames: [...frames],
+        highlightLine: -1,
+      });
+    }
+
+    function startDebugging() {
+      fifo();
+      currentStep = 0;
+      document.getElementById("output").textContent = steps[currentStep].message;
+      updateFrames(steps[currentStep]);
+      updateCodeHighlight(steps[currentStep].highlightLine);
+      document.getElementById("nextStep").disabled = false;
+      scrollToHighlightedLine(steps[currentStep].highlightLine);
+      scrollOutputToBottom();
+    }
+
+    function nextStep() {
+      currentStep++;
+      if (currentStep >= steps.length) {
+        document.getElementById("output").textContent += "\nDebugging complete!";
+        document.getElementById("nextStep").disabled = true;
+      } else {
+        document.getElementById("output").textContent += "\n" + steps[currentStep].message;
+        updateFrames(steps[currentStep]);
+        updateCodeHighlight(steps[currentStep].highlightLine);
+        scrollToHighlightedLine(steps[currentStep].highlightLine);
+        scrollOutputToBottom();
+      }
+    }
+
+    function showAllSteps() {
+      const outputArea = document.getElementById("output");
+      outputArea.textContent = ""; // Clear previous output
+
+      steps.forEach((step) => {
+        outputArea.textContent += step.message + "\n";
+      });
+
+      updateFrames(steps[steps.length - 1]); // Show the final frame
+      document.getElementById("nextStep").disabled = true;
+      scrollToHighlightedLine(steps[steps.length - 1].highlightLine);
+    }
+
+    function updateFrames(step) {
+      const frameContainer = document.getElementById("frames");
+      frameContainer.innerHTML = "";
+
+      step.frames.forEach((frame) => {
+        const frameDiv = document.createElement("div");
+        frameDiv.textContent = frame === -1 ? "" : frame;
+        frameContainer.appendChild(frameDiv);
+      });
+    }
+
+    function updateCodeHighlight(lineNumber) {
+      const code = document.getElementById("code");
+      const lines = code.querySelectorAll('span');
+      lines.forEach((line, index) => {
+        if (index === lineNumber) {
+          line.classList.add('line-highlight');
+        } else {
+          line.classList.remove('line-highlight');
+        }
+      });
+    }
+
+    function scrollToHighlightedLine(lineNumber) {
+      const codeSection = document.getElementById('codeSection');
+      const lines = codeSection.querySelectorAll('span');
+      const line = lines[lineNumber];
+      if (line) {
+        line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function scrollOutputToBottom() {
+      const outputArea = document.getElementById("output");
+      outputArea.scrollTop = outputArea.scrollHeight;
+    }
+
+    // Wrap code lines in spans for easy highlighting
+    document.addEventListener("DOMContentLoaded", () => {
+      const code = document.getElementById("code");
+      const lines = code.innerHTML.split("\n");
+
+      code.innerHTML = lines
+        .map((line) => `<span>${line}</span>`)
+        .join("\n");
+    });
+
+    // Attach event listeners
+    document.getElementById('startBtn').addEventListener('click', startDebugging);
+    document.getElementById('nextStep').addEventListener('click', nextStep);
+  </script>
+</body>
+</html>
